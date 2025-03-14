@@ -246,3 +246,15 @@ func (c *Client) Wait(jobPtr any) (*JobLease, error) {
 		}
 	}
 }
+
+type Stats struct {
+	JobStates map[db.JobState]uint64 `json:"job_states"`
+}
+
+func (c *Client) GetStats() (*Stats, error) {
+	jobStates, err := db.GetJobStateStats(c.conn)
+	if err != nil {
+		return nil, err
+	}
+	return &Stats{JobStates: jobStates}, nil
+}

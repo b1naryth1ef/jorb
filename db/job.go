@@ -202,3 +202,28 @@ func PruneJobs(db *sqlx.DB, olderThan time.Time) error {
 	)
 	return err
 }
+
+func GetJobStateStats(db *sqlx.DB) (map[JobState]uint64, error) {
+	rows, err := db.Queryx("SELECT count(*) as cnt, state FROM jobs GROUP BY state")
+	if err != nil {
+		return nil, err
+	}
+
+	type Item struct {
+		Cnt   uint64   `json:"cnt"`
+		State JobState `json:"state"`
+	}
+
+	result := make(map[JobState]uint64)
+	for rows.Next() {
+		var count uint64
+		var state JobState
+		err = rows.Scan(&count, &state)
+		if err != nil {
+			return nil, err
+		}
+
+		result[state] = count
+	}
+	return result, nil
+}
